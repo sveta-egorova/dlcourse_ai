@@ -1,1 +1,4 @@
 .DS_Store
+/assignments/assignment2/data
+/assignments/assignment2/.ipynb_checkpoints
+/dl-venv
