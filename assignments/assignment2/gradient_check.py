@@ -15,12 +15,17 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
     Return:
       bool indicating whether gradients match or not
     """
+#     print("Hi from check_gradient function, parameter_checked=\n", str(x))
+
     assert isinstance(x, np.ndarray)
     assert x.dtype == np.float
 
     fx, analytic_grad = f(x)
     analytic_grad = analytic_grad.copy()
-
+#     print("analytic_grad = ", analytic_grad)
+#     print("shape of x = \n", x.shape)
+#     print("shape of analytic_grad = \n", analytic_grad.shape)
+    
     assert analytic_grad.shape == x.shape
 
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
@@ -28,10 +33,25 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
         ix = it.multi_index
         analytic_grad_at_ix = analytic_grad[ix]
         numeric_grad_at_ix = 0
+        
+        x_upper = x.copy()
+        x_upper[ix] += delta
+        x_lower = x.copy()
+        x_lower[ix] -= delta
+        
+#         print("checking upper value for analytical grad")
+        fx_upper, _ = f(x_upper)
+#         print("Upper loss = ", fx_upper)
+#         print("checking lower value for analytical grad")
+        fx_lower, _ = f(x_lower)
+#         print("Lower loss = ", fx_lower)
+        numeric_grad_at_ix = (fx_upper - fx_lower)/(2*delta)
 
         # TODO Copy from previous assignment
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
 
+#         print(numeric_grad_at_ix, analytic_grad_at_ix)
+#         print("analytic = ", analytic_grad_at_ix)
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
             print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (
                   ix, analytic_grad_at_ix, numeric_grad_at_ix))
@@ -56,15 +76,20 @@ def check_layer_gradient(layer, x, delta=1e-5, tol=1e-4):
     Returns:
       bool indicating whether gradients match or not
     """
+#     print("Hi from check_layer_gradient function, x=\n", str(x))
+    
     output = layer.forward(x)
     output_weight = np.random.randn(*output.shape)
 
     def helper_func(x):
+#         print("Hi from helper function")
         output = layer.forward(x)
         loss = np.sum(output * output_weight)
         d_out = np.ones_like(output) * output_weight
         grad = layer.backward(d_out)
         return loss, grad
+
+#     print("BYE from check_layer_gradient function, x=\n", str(x))
 
     return check_gradient(helper_func, x, delta, tol)
 
@@ -85,6 +110,8 @@ def check_layer_param_gradient(layer, x,
     Returns:
       bool indicating whether gradients match or not
     """
+#     print("HI from check_layer_param_gradient function")
+
     param = layer.params()[param_name]
     initial_w = param.value
 
@@ -92,6 +119,7 @@ def check_layer_param_gradient(layer, x,
     output_weight = np.random.randn(*output.shape)
 
     def helper_func(w):
+#         print("HI from helper function inside check_layer_param_gradient")
         param.value = w
         output = layer.forward(x)
         loss = np.sum(output * output_weight)

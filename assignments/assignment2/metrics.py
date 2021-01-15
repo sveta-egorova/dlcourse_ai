@@ -10,7 +10,9 @@ def multiclass_accuracy(prediction, ground_truth):
     accuracy - ratio of accurate predictions to total samples
     """
 
-    # TODO: Implement computing accuracy
-    raise Exception("Not implemented!")
+    true_values = (prediction == ground_truth).sum()
 
-    return 0
+    # TODO: Implement computing accuracy
+#     raise Exception("Not implemented!")
+
+    return true_values/len(prediction)

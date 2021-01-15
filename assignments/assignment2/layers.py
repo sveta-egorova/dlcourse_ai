@@ -14,7 +14,10 @@ def l2_regularization(W, reg_strength):
       gradient, np.array same shape as W - gradient of weight by l2 loss
     """
     # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    
+    loss = np.sum(W * W) * reg_strength
+    grad = 2 * reg_strength * W
+#     raise Exception("Not implemented!")
     return loss, grad
 
 
@@ -34,9 +37,30 @@ def softmax_with_cross_entropy(preds, target_index):
       dprediction, np array same shape as predictions - gradient of predictions by loss value
     """
     # TODO: Copy from the previous assignment
-    raise Exception("Not implemented!")
+    
+    batch_size = preds.shape[0]
+#     if batch_size == 0:
+#         print("WTF")
+#     print("batch_size = ", batch_size)
+    target_probs = np.zeros(preds.shape)
+    target_probs[range(batch_size), target_index] = 1
+    
+    probs = preds - np.max(preds, axis=1, keepdims=True)
+    probs = np.exp(probs) 
+    probs /= np.sum(probs, axis=-1, keepdims=True)
+    
+#     return np.exp(predictions - max_pred) / np.sum(np.exp(predictions - max_pred), axis=-1, keepdims=True)    
+#     probs = np.exp(preds - np.max(preds))/np.exp(preds).sum()
+#     loss = -1/batch_size * (target_probs * np.log(probs)).sum()
+#     if batch_size == 0:
+#         print("WTF")
+#     loss = -np.log(np.choose(target_index, probs.T)).mean()
+    loss = - (np.log(probs) * target_probs).sum()/batch_size
 
-    return loss, d_preds
+    dprediction = (probs - target_probs)/batch_size
+#     raise Exception("Not implemented!")
+
+    return loss, dprediction
 
 
 class Param:
@@ -52,13 +76,21 @@ class Param:
 
 class ReLULayer:
     def __init__(self):
-        pass
+        self.relu_mask = None
 
     def forward(self, X):
         # TODO: Implement forward pass
         # Hint: you'll need to save some information about X
         # to use it later in the backward pass
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
+#         print("HI from forward-pass, x=\n", str(X))    
+#         print("X before RELU: \n", str(X))
+        self.relu_mask = X<0
+#         print("HI from forward-pass " + str(self.relu_mask.shape))
+        X = X.copy()
+        X[self.relu_mask]=0
+#         print("X after relu: \n" + str(X))
+        return X
 
     def backward(self, d_out):
         """
@@ -74,7 +106,11 @@ class ReLULayer:
         """
         # TODO: Implement backward pass
         # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
+#         print("HI from backward-pass " + str(d_out.shape))
+        d_result = d_out    
+        d_result[self.relu_mask] = 0
+#         print(d_out)
         return d_result
 
     def params(self):
@@ -89,9 +125,16 @@ class FullyConnectedLayer:
         self.X = None
 
     def forward(self, X):
+#         print("HI from layer step forward")
+        self.X = X
+#         print("shape of X: ", str(X.shape))
+#         print("shape of W: ", str(self.W.value.shape))
+        results = np.dot(self.X, self.W.value) + self.B.value
+#         print("shape of results after X * W + B: ", str(results.shape))
         # TODO: Implement forward pass
         # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
+        return results
 
     def backward(self, d_out):
         """
@@ -112,10 +155,21 @@ class FullyConnectedLayer:
         # and gradients with respect to W and B
         # Add gradients of W and B to their `grad` attribute
 
+#         loss, dprediction = softmax_with_cross_entropy(predictions, target_index)
+        batch_size = d_out.shape[0]
+#         print("HI from back prop step!, shape of d_out = ", d_out.shape)
+        self.W.grad = np.dot(self.X.T, d_out) #3x2, 2x4 #1/batch_size * 
+        self.B.grad = np.sum(d_out, axis=0, keepdims=True)
+        d_input = np.dot(d_out, self.W.value.T)
+        
+#         print("Shape of d_input = ", d_input.shape)
+
+        
+        
         # It should be pretty similar to linear classifier from
         # the previous assignment
 
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
 
         return d_input
 
