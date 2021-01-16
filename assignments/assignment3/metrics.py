@@ -10,4 +10,5 @@ def binary_classification_metrics(prediction, ground_truth):
 
 
 def multiclass_accuracy(prediction, ground_truth):
-    return 0
+    true_values = (prediction == ground_truth).sum()
+    return true_values/len(prediction)

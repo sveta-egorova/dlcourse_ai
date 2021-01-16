@@ -28,10 +28,20 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
         ix = it.multi_index
         analytic_grad_at_ix = analytic_grad[ix]
         numeric_grad_at_ix = 0
+        
+        x_upper = x.copy()
+        x_upper[ix] += delta
+        x_lower = x.copy()
+        x_lower[ix] -= delta
+        fx_upper, _ = f(x_upper)
+#         print("fx_upper = ", fx_upper)
+        fx_lower, _ = f(x_lower)
+#         print("fx_lower = ", fx_lower)
+        numeric_grad_at_ix = (fx_upper - fx_lower)/(2*delta)
 
         # TODO Copy from previous assignment
-        raise Exception("Not implemented!")
-
+#         raise Exception("Not implemented!")
+#         print("numeric grad = \n", numeric_grad_at_ix)
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
             print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (
                   ix, analytic_grad_at_ix, numeric_grad_at_ix))
@@ -123,6 +133,7 @@ def check_model_gradient(model, X, y,
     for param_key in params:
         print("Checking gradient for %s" % param_key)
         param = params[param_key]
+#         print("params = ", str(param))
         initial_w = param.value
 
         def helper_func(w):

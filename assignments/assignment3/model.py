@@ -27,7 +27,19 @@ class ConvNet:
         conv2_channels, int - number of filters in the 2nd conv layer
         """
         # TODO Create necessary layers
-        raise Exception("Not implemented!")
+        self.filter_size = 3
+        self.pool_size = 4
+        self.padding = 1    # input shape: m x 32 x 32 x 3
+        self.conv1 = ConvolutionalLayer(input_shape[2], conv1_channels, self.filter_size, self.padding) # shape: m x 32 x 32 x conv1_channels
+        self.relu1 = ReLULayer() # shape: m x 32 x 32 x conv1_channels
+        self.maxpool1 = MaxPoolingLayer(self.pool_size, self.pool_size) # shape m x 8 x 8 x conv1_channels
+        self.conv2 = ConvolutionalLayer(conv1_channels, conv2_channels, self.filter_size, self.padding) # shape m x 8 x 8 x conv2_channels
+        self.relu2 = ReLULayer() # shape m x 8 x 8 x conv2_channels
+        self.maxpool2 = MaxPoolingLayer(self.pool_size, self.pool_size) # shape m x 2 x 2 x conv2_channels
+        self.flat = Flattener() # shape m x 4 * conv2_channels
+        self.fc = FullyConnectedLayer(4 * conv2_channels, n_output_classes)
+        
+#         raise Exception("Not implemented!")
 
     def compute_loss_and_gradients(self, X, y):
         """
@@ -41,20 +53,67 @@ class ConvNet:
         # Before running forward and backward pass through the model,
         # clear parameter gradients aggregated from the previous pass
 
+        for _, param in self.params().items():
+            param.grad = np.zeros(param.grad.shape)
+        
         # TODO Compute loss and fill param gradients
+        
+        results = self.conv1.forward(X)
+        results = self.relu1.forward(results)
+        results = self.maxpool1.forward(results)
+        results = self.conv2.forward(results)
+        results = self.relu2.forward(results)
+        results = self.maxpool2.forward(results)
+        results = self.flat.forward(results)
+        results = self.fc.forward(results)
+        loss, d_predictions = softmax_with_cross_entropy(results, y)
+        
+        d_input = self.fc.backward(d_predictions)
+        d_input = self.flat.backward(d_input)
+        d_input = self.maxpool2.backward(d_input)
+        d_input = self.relu2.backward(d_input)
+        d_input = self.conv2.backward(d_input)
+        d_input = self.maxpool1.backward(d_input)
+        d_input = self.relu1.backward(d_input)
+        d_input = self.conv1.backward(d_input)
+
+        
         # Don't worry about implementing L2 regularization, we will not
         # need it in this assignment
-        raise Exception("Not implemented!")
+        return loss
+#         raise Exception("Not implemented!")
 
     def predict(self, X):
         # You can probably copy the code from previous assignment
-        raise Exception("Not implemented!")
+#         pred = np.zeros(X.shape[0], np.int)
+        results = self.conv1.forward(X)
+        results = self.relu1.forward(results)
+        results = self.maxpool1.forward(results)
+        results = self.conv2.forward(results)
+        results = self.relu2.forward(results)
+        results = self.maxpool2.forward(results)
+        results = self.flat.forward(results)
+        results = self.fc.forward(results)
+        
+        probs = results - np.max(results, axis=1, keepdims=True)
+        probs = np.exp(probs) 
+        probs /= np.sum(probs, axis=1, keepdims=True)
+
+        pred = np.argmax(probs, axis=1)
+        return pred
+#         raise Exception("Not implemented!")
 
     def params(self):
-        result = {}
+        result = {'conv1_W': self.conv1.W, 
+                  'conv1_B': self.conv1.B, 
+                  'conv2_W': self.conv2.W, 
+                  'conv2_B': self.conv2.B,
+                  'fc_W': self.fc.W, 
+                  'fc_B': self.fc.B
+                 }
 
         # TODO: Aggregate all the params from all the layers
         # which have parameters
-        raise Exception("Not implemented!")
+#         raise Exception("Not implemented!")
 
         return result
