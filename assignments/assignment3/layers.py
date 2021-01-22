@@ -151,7 +151,7 @@ class ConvolutionalLayer1:
         self.X_cache = (X, X_padded)
         X_padded = X_padded[:, :, :, :, np.newaxis]
 
-        W = self.W.value[np.newaxis, :, :, :, :] # Why use np.newaxis??????
+        W = self.W.value[np.newaxis, :, :, :, :] # Why use np.newaxis??????   [smth, filter x filter_size x in_channels, out_channels]
 
         out_height = height - self.filter_size + 2 * self.padding + 1
         out_width = width - self.filter_size + 2 * self.padding + 1
@@ -161,7 +161,7 @@ class ConvolutionalLayer1:
         # but try to avoid having any other loops
         for y in range(out_height):
             for x in range(out_width):
-                X_slice = X_padded[:, y:y + self.filter_size, x:x + self.filter_size, :, :]
+                X_slice = X_padded[:, y:y + self.filter_size, x:x + self.filter_size, :, :]    # shape [batch, filter, filter, in_channels, smth]
                 out[:, y, x, :] = np.sum(X_slice * self.W.value, axis=(1, 2, 3)) + self.B.value # WTF?????
 
         return out
